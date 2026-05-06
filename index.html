@@ -414,7 +414,7 @@ body {
 .sp-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 .sp-body::-webkit-scrollbar { width: 5px; }
 .sp-body::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
-.sp-section { background: #fff; border-radius: 10px; border: 1px solid #f0f0f0; overflow: hidden; }
+.sp-section { background: #fff; border-radius: 10px; border: 1px solid #f0f0f0; overflow: visible; }
 .sp-section-hd { padding: 13px 16px; background: #fafafa; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
 .sp-section-title { font-size: 13px; font-weight: 700; color: #374151; display: flex; align-items: center; gap: 7px; }
 .sp-section-title::before { content: ''; width: 3px; height: 13px; background: #1677ff; border-radius: 2px; display: inline-block; }
@@ -477,10 +477,10 @@ body {
 .tasks-tbl select:focus { border-color: #1677ff; }
 
 /* Timelog form */
-.tl-form { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; padding: 12px 14px; background: #f8fafc; border-radius: 8px; margin-bottom: 12px; }
+.tl-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; margin-bottom: 12px; }
 .tl-form-item { display: flex; flex-direction: column; gap: 4px; }
 .tl-form-item label { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: .3px; }
-.tl-form-item select,.tl-form-item input { padding: 8px 10px; border: 1.5px solid #e5e7eb; border-radius: 7px; font-size: 13px; outline: none; background: #fff; color: #374151; font-family: inherit; }
+.tl-form-item select,.tl-form-item input { width: 100%; padding: 8px 10px; border: 1.5px solid #e5e7eb; border-radius: 7px; font-size: 13px; outline: none; background: #fff; color: #374151; font-family: inherit; }
 .tl-form-item select:focus,.tl-form-item input:focus { border-color: #1677ff; }
 .tl-list { display: flex; flex-direction: column; gap: 6px; }
 .tl-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #f8fafc; border: 1px solid #f0f0f0; border-radius: 8px; font-size: 13px; }
@@ -492,7 +492,7 @@ body {
 .tl-del:hover { color: #ef4444; }
 
 /* Progress updates */
-.pu-form { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px; }
+.pu-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
 .pu-list { display: flex; flex-direction: column; gap: 10px; }
 .pu-item { background: #f8fafc; border: 1px solid #f0f0f0; border-radius: 10px; padding: 13px 16px; }
 .pu-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
@@ -1297,7 +1297,13 @@ async function renderSidePanel(reqId){
   document.getElementById('sp-body').innerHTML=`
     <!-- Status Flow -->
     <div class="sp-section">
-      <div class="sp-section-hd"><div class="sp-section-title">研发流程</div>${canEdit?`<button class="ant-btn ant-btn-default ant-btn-sm" onclick="openEditReq('${reqId}')">✏️ 编辑信息</button>`:''}</div>
+      <div class="sp-section-hd">
+        <div class="sp-section-title">研发流程</div>
+        ${canEdit?`<div style="display:flex;gap:6px">
+          <button class="ant-btn ant-btn-default ant-btn-sm" onclick="openEditReq('${reqId}')">✏️ 编辑</button>
+          <button class="ant-btn ant-btn-danger ant-btn-sm" onclick="deleteReq('${reqId}')">🗑 删除</button>
+        </div>`:''}
+      </div>
       <div class="sp-section-body">
         <div class="status-flow">
           ${STATUS_FLOW.map((s,i)=>`
@@ -1361,12 +1367,11 @@ async function renderSidePanel(reqId){
       <div class="sp-section-hd"><div class="sp-section-title">进度更新</div></div>
       <div class="sp-section-body">
         <div class="pu-form">
-          <textarea class="ant-textarea" id="sp-pu-${reqId}" placeholder="描述本次进度更新..." style="flex:1;min-width:180px;min-height:60px"></textarea>
-          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
-            <div style="display:flex;align-items:center;gap:8px">
-              <input type="range" id="sp-pu-pct-${reqId}" min="0" max="100" step="5" value="0" style="width:90px" oninput="document.getElementById('sp-pu-pct-v-${reqId}').textContent=this.value+'%'"/>
-              <span id="sp-pu-pct-v-${reqId}" style="font-size:13px;font-weight:700;color:#1677ff;min-width:36px">0%</span>
-            </div>
+          <textarea class="ant-textarea" id="sp-pu-${reqId}" placeholder="描述本次进度更新..." style="min-height:70px;resize:none"></textarea>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:12px;color:#9ca3af;font-weight:600;flex-shrink:0">完成进度</span>
+            <input type="range" id="sp-pu-pct-${reqId}" min="0" max="100" step="5" value="0" style="flex:1" oninput="document.getElementById('sp-pu-pct-v-${reqId}').textContent=this.value+'%'"/>
+            <span id="sp-pu-pct-v-${reqId}" style="font-size:13px;font-weight:700;color:#1677ff;min-width:36px;text-align:right">0%</span>
             <button class="ant-btn ant-btn-primary ant-btn-sm" onclick="spSubmitProgress('${reqId}')">提交</button>
           </div>
         </div>
@@ -1381,15 +1386,26 @@ async function renderSidePanel(reqId){
         <div class="tl-form">
           <div class="tl-form-item">
             <label>关联任务</label>
-            <select id="sp-tl-task-${reqId}" style="min-width:130px">
+            <select id="sp-tl-task-${reqId}">
               <option value="">选择任务（可选）</option>
               ${tasks.map(t=>`<option value="${t.id}">${t.title}</option>`).join('')}
             </select>
           </div>
-          <div class="tl-form-item"><label>日期</label><input type="date" id="sp-tl-date-${reqId}" value="${new Date().toISOString().slice(0,10)}"/></div>
-          <div class="tl-form-item"><label>工时(h)</label><input type="number" id="sp-tl-hours-${reqId}" min="0.5" max="24" step="0.5" value="1" style="width:72px"/></div>
-          <div class="tl-form-item"><label>备注</label><input id="sp-tl-note-${reqId}" placeholder="工作内容..." style="width:130px"/></div>
-          <button class="ant-btn ant-btn-primary ant-btn-sm" style="align-self:flex-end" onclick="spSubmitTimelog('${reqId}')">填报</button>
+          <div class="tl-form-item">
+            <label>日期</label>
+            <input type="date" id="sp-tl-date-${reqId}" value="${new Date().toISOString().slice(0,10)}"/>
+          </div>
+          <div class="tl-form-item">
+            <label>工时(h)</label>
+            <input type="number" id="sp-tl-hours-${reqId}" min="0.5" max="24" step="0.5" value="1"/>
+          </div>
+          <div class="tl-form-item">
+            <label>备注</label>
+            <input id="sp-tl-note-${reqId}" placeholder="工作内容..."/>
+          </div>
+          <div style="grid-column:1/-1;display:flex;justify-content:flex-end">
+            <button class="ant-btn ant-btn-primary ant-btn-sm" onclick="spSubmitTimelog('${reqId}')">填报工时</button>
+          </div>
         </div>
         <div id="sp-tl-${reqId}">${renderTimelogList(timelogs)}</div>
       </div>
